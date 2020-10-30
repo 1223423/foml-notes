@@ -1,9 +1,3 @@
-__author__ = "Ben Cerne"
-__license__ = "GPL v3"
-__version__ = "0.0 (10/27/2020)"
-__maintainer__ = "Ben Cerne"
-__status__ = "Testing"
-
 import argparse
 import pandas as pd
 import numpy as np
