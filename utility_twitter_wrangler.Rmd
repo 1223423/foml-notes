@@ -1,0 +1,199 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Title: Twitter Data Wrangling Utility
+# Author: Benas Cernevicius
+# Last updated: 31/10/2020
+# Dependency list and versions used
+
+library(dplyr) # dplyr 1.0.2
+library(stringr) #stringr 1.4.0
+library(qdapRegex) #qdapRegex 0.7.2
+```
+
+
+```{r}
+#csv_transform: Wrangles the Sentiment140 dataset
+#     - Creates "text_object","containsMention_category","weekday_category" features
+#        - Format feature name and pandas datatype separated by an underscore
+#     - Mutates pos/negative labels into boolean
+#     - Transforms all strings to lowercase
+#     - Removes mentions
+#     - Removes URLs and shorthand twitter URLs
+#     - Removes various symbols and numerics
+#     - Converts separator symbols like ampersands and backslashes to and / or whitespace
+#     - Removes some html elements (currently only &quot since that appears a lot)
+#     - Selects relevant rows
+#
+#     NOTE: Had strange error passing a function through each row in dplyr, so decided to write sequential mutations
+#       Looks a little messy but works all the same
+
+
+csv_transform <- function(input, output){
+  
+  data <- read.csv(input)
+  transformed_data <- data  %>%
+    
+    # Remove mentions                  
+    mutate(text = case_when(
+      TRUE ~ gsub("@[A-Za-z0-9]+", "", text)
+    )) %>%
+      
+    # Remove normal urls
+    mutate(text = case_when(
+      TRUE ~ rm_url(text, trim = TRUE, clean = TRUE,
+                                    pattern = "@rm_url", replacement = "", extract = FALSE,
+                                    dictionary = getOption("regex.library"))
+    )) %>%
+      
+    # Remove shortened twitter urls
+    mutate(text = case_when(
+      TRUE ~ rm_twitter_url(text, trim = TRUE, clean = TRUE,
+                                    pattern = "@rm_twitter_url", replacement = "", extract = FALSE,
+                                    dictionary = getOption("regex.library"))
+    )) %>%
+      
+    # Remove various remaining symbols (text-emojis are sacrificed here)
+    # Lowercase and remove symbols
+    mutate(text = case_when(
+      TRUE ~ gsub("[,.!_*:;)(']","",str_to_lower(text, locale = "en"))
+    )) %>%
+      
+    # Replace dashes with space
+    mutate(text = case_when(
+      TRUE ~ gsub("-"," ",text)
+    )) %>%
+      
+    # Replace ampersands with and (though this will be removed by stopwords)
+    mutate(text = case_when(
+      TRUE ~ gsub("&amp"," and ", text)
+    )) %>%
+      
+    # Remove numerics
+    mutate(text = case_when(
+      TRUE ~ gsub("[0-9]","", text)
+    )) %>%
+      
+    # Remove numerics
+    mutate(text = case_when(
+      TRUE ~ gsub("[0-9]","", text)
+    )) %>%
+    
+    # replace slashes with space to separate sentences
+    mutate(text = case_when(
+      TRUE ~ gsub("/"," ", text)
+    )) %>%
+      
+    mutate(text = case_when(
+      TRUE ~ gsub("\\\\"," ",text)
+    )) %>%
+    
+    #remove html quotes
+    mutate(text = case_when(
+      TRUE ~ gsub("&quot"," ",text)
+    )) %>%
+    
+    #remove extraneous whitespace
+    mutate(text = case_when(
+      TRUE ~ gsub("\\s+"," ",text)
+    )) %>%
+    
+    # Remove na
+    filter(!is.na(text)) %>%
+    filter(text != "") %>%
+  
+    # weekday-category
+    mutate(weekday = case_when(
+      (substr(time, 1, 3) == "Mon") ~ 1,
+      (substr(time, 1, 3) == "Tue") ~ 2,
+      (substr(time, 1, 3) == "Wed") ~ 3,
+      (substr(time, 1, 3) == "Thu") ~ 4,
+      (substr(time, 1, 3) == "Fri") ~ 5,
+      (substr(time, 1, 3) == "Sat") ~ 6,
+      (substr(time, 1, 3) == "Sun") ~ 7
+    )) %>%
+    
+    # containsMention-category
+    mutate(containsMention = case_when(
+      TRUE ~ as.numeric(grepl("@", text, fixed = TRUE))
+    )) %>%
+    
+    # labels to binary
+    mutate(label = case_when(
+      label == 0 ~ 0,
+      label == 4 ~ 1
+    )) %>%
+      
+    select(label, text, containsMention, weekday) %>%
+    rename("text_object" = "text", "containsMention_category" = "containsMention", "weekday_category" = "weekday")
+
+
+  write.csv(transformed_data, output, row.names = FALSE)
+}
+
+
+
+
+#csv_balanced_subset: Sentiment140 is too large for the toaster we're using. This function creates a balanced randomly selected subset.
+# Input: csv, Output: csv
+#     - Initially the whole dataset is split into positive and negative labels
+#     - For each day of the week, we randomly sample n positive tweets and n negative
+#     - The result is a randomly selected dataset of (2*7*n) observations across weekdays and labels
+#
+#     NOTE: In order not to introduce bias into the data, the function samples observations randomly
+#       This means every time this function is run the results will differ.
+#       If you want a reproducible, but not randomly selected set, use head(n) instead of sample_n
+csv_balanced_subset <- function(input, output, n){
+  
+  data <- read.csv(input)
+  
+  pos <- data %>%
+    filter(label == 0)
+  
+  neg <- data %>%
+    filter(label == 1)
+  
+  # Randomly sample n positively labeled observations for each day of the week
+    pos_days <- pos %>%
+      filter(weekday_category == "1") %>%
+      sample_n(size = n)
+    
+    for(day in seq(2,7,1)){
+      day_data <- pos %>%
+        filter(weekday_category == day) %>%
+        sample_n(size = n)
+      
+      pos_days <- rbind(pos_days, day_data)
+    }
+  
+  # Randomly sample n negatively labeled observations for each day of the week
+    neg_days <- neg %>%
+      filter(weekday_category == "1") %>%
+      sample_n(size = n)
+    
+    for(day in seq(2,7,1)){
+      day_data <- neg %>%
+        filter(weekday_category == day) %>%
+        sample_n(size = n)
+      
+      neg_days <- rbind(pos_days, day_data)
+    }
+    
+  # Aggregate into final dataset
+  balanced = rbind(pos_days,neg_days)
+  write.csv(balanced, output, row.names = FALSE)
+}
+```
+
+
+```{r}
+# Methodology:
+#     1. Wrangle original dataset into a cleaned subset
+csv_transform("original_full.csv", "dataset_full_transformed.csv")
+#     2. Create a randomly selected, balanced subset that we will work on
+csv_balanced_subset("dataset_full_transformed.csv", "dataset_subset_transformed.csv", 10000)
+```
+
+
+
+
