@@ -1,4 +1,4 @@
-Simple scikit-learn sentiment classification pipeline for fundamentals of machine learning course
+Simple scikit-learn sentiment classification pipeline for my fundamentals of machine learning course
 
 # Usage
 
@@ -41,9 +41,11 @@ The utility cleans the data (removes mentions, urls, html tags, symbols etc.) an
 - Try / catch everything and general non-hardcoded safety checks
 - Add other algorithms & more dynamic pipeline
 - Pickle trained models for reuse
+- Lemmatization
 - Framework for generating automatic reports: training, evaluating & predicting across all ngram, feature, chosen split, algorithm combinations
 - Document wrangling util more clearly
   - Solve that weird bug instead of having a million mutate pipes
+  - Reusable wrapper to wrangle text dynamically
 - Reduce assumptions / parameters e.g. max features or test / train split
 - Reduce dependencies where possible
 - Support multiple text / object dtype features (now only uses the first available)
