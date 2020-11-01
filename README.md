@@ -10,7 +10,7 @@ python train.py --csv dataset_subset_transformed.csv --predict predictors.csv --
  * -- algorithm [svm / nb] _training algorithm_
  * -- ngrams [n] _Ngram range from 1 to n (not n-grams alone!), currently only words_
 ### Optional flags
- * -- predict [filename.csv] _unlabeled data; must contain same features_
+ * -- predict [filename.csv] _unlabeled data; must contain same feature names as in train set_
  * -- crossvalidate / cv _cross-validation of entire training set (10 splits)_
  * -- confusionmatrix / cm _draws basic confusion matrix (requires matplotlib)_
  * -- showngrams _Shows the sentence 'an apple a day keeps the doctor away' converted to the range of ngrams_
