@@ -74,6 +74,7 @@ if __name__ == "__main__":
     # Load data
         # Training set
         training_data = pd.read_csv(args.csv, delimiter=',')
+        feature_datatypes = construct_feature_dtypes(use_features)
 
         # Safety check: does data have NA values? If so, warn, remove, and continue
         text_feature = feature_datatypes['object'][0]
@@ -89,7 +90,6 @@ if __name__ == "__main__":
 
     # Feature extraction
         features = extract_features(training_data, use_features)
-        feature_datatypes = construct_feature_dtypes(use_features)
         target = training_data.label
 
     # Data split
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         # Currently only the first text feature will be used
         preprocess = ColumnTransformer(
             [
-            ('text_tfidf', TfidfVectorizer(max_features = max_features, stop_words = 'english', ngram_range=(1,ngram_max)), feature_datatypes['object'][0]),
+            ('text_tfidf', TfidfVectorizer(max_features = max_features, stop_words = 'english', ngram_range=(1,ngram_max)), text_feature),
             ('onehot_category', OneHotEncoder(dtype='int', handle_unknown='ignore'), feature_datatypes['category'])
             ],
             remainder='drop')
