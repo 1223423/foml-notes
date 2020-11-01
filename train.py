@@ -19,7 +19,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import plot_confusion_matrix
 import matplotlib.pyplot as plt
-
+from sklearn.linear_model import LogisticRegression
 
 def extract_features(df, features):
     # Returns df with desired features and converts them to appropriate datatype
@@ -47,6 +47,7 @@ def select_classifier(algorithm):
     return {
         'svm': svm.LinearSVC(),
         'nb': MultinomialNB(),
+        'logreg' : LogisticRegression(random_state=0, max_iter = 20000)
     }[algorithm]
 
 if __name__ == "__main__":
@@ -131,6 +132,7 @@ if __name__ == "__main__":
             print("Cross validating (10 splits) across entire dataset... (Takes longer)")
             cross_val_score = (cross_val_score(model, features, target, cv=10, scoring = 'accuracy').mean())
             print(str('Cross-validation: {:04.2f}'.format(cross_val_score*100)) + '%')
+            print("Accuracy: %0.3f (+/- %0.3f)" % (cross_val_score.mean(), cross_val_score.std() * 2))
         
         # Confusion matrix
         if(args.confusionmatrix):
