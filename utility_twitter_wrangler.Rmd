@@ -131,9 +131,6 @@ csv_transform <- function(input, output){
   write.csv(transformed_data, output, row.names = FALSE)
 }
 
-
-
-
 #csv_balanced_subset: Sentiment140 is too large for the toaster we're using. This function creates a balanced randomly selected subset.
 # Input: csv, Output: csv
 #     - Initially the whole dataset is split into positive and negative labels
@@ -146,7 +143,7 @@ csv_transform <- function(input, output){
 csv_balanced_subset <- function(input, output, n){
   
   data <- read.csv(input)
-  
+
   pos <- data %>%
     filter(label == 0)
   
@@ -158,26 +155,29 @@ csv_balanced_subset <- function(input, output, n){
       filter(weekday_category == "1") %>%
       sample_n(size = n)
     
-    for(day in seq(2,7,1)){
-      day_data <- pos %>%
-        filter(weekday_category == day) %>%
+    for(pday in seq(2,7,1)){
+      pday_data <- pos %>%
+        filter(weekday_category == pday) %>%
         sample_n(size = n)
       
-      pos_days <- rbind(pos_days, day_data)
+      pos_days <- rbind(pos_days, pday_data)
     }
+    
+  nrow(pos_days)
   
   # Randomly sample n negatively labeled observations for each day of the week
     neg_days <- neg %>%
       filter(weekday_category == "1") %>%
       sample_n(size = n)
     
-    for(day in seq(2,7,1)){
-      day_data <- neg %>%
-        filter(weekday_category == day) %>%
+    for(nday in seq(2,7,1)){
+      nday_data <- neg %>%
+        filter(weekday_category == nday) %>%
         sample_n(size = n)
       
-      neg_days <- rbind(pos_days, day_data)
+      neg_days <- rbind(neg_days, nday_data)
     }
+    nrow(neg_days)
     
   # Aggregate into final dataset
   balanced = rbind(pos_days,neg_days)
@@ -193,7 +193,5 @@ csv_transform("original_full.csv", "dataset_full_transformed.csv")
 #     2. Create a randomly selected, balanced subset that we will work on
 csv_balanced_subset("dataset_full_transformed.csv", "dataset_subset_transformed.csv", 10000)
 ```
-
-
 
 
