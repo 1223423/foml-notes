@@ -54,34 +54,33 @@ if __name__ == "__main__":
 
     # Parse runtime arguments (not in use right now, will implement with features)
         parser = argparse.ArgumentParser()
-        parser.add_argument('--crossvalidate', help = "perform cross-validation on entire dataset yes/no", action="store_true", required=False)
+        parser.add_argument('--crossvalidate','--cv', help = "perform cross-validation on entire dataset yes/no", action="store_true", required=False)
         parser.add_argument('--csv', help = "training dataset path eg: data/train.csv", default = "no", type = str, required=True)
         parser.add_argument('--predict', help = "prediction dataset path eg: data/predict.csv", default = None, type = str, required=False)
         parser.add_argument('--features', help = "train / predict features e.g. text_object gender_category age_int64", nargs = "+", default = None, type = str, required=True)
         parser.add_argument('--algorithm', help = "choose algorithms e.g. svm or nb", default = None, type = str, required = True)
         parser.add_argument('--ngrams', help = "use ngrams up to x", default = 1, type = int, required = True)
         parser.add_argument('--showngrams', help = "show example of ngram encoding", action="store_true", required = False)
-        parser.add_argument('--confusionmatrix', help = "plot confusion matrix", action="store_true", required = False)
+        parser.add_argument('--confusionmatrix','--cm', help = "plot confusion matrix", action="store_true", required = False)
         args = parser.parse_args()
 
     # Parameters
         use_features = args.features
         ngram_max = args.ngrams
-        print("ngrams:",ngram_max)
-        MAX_FEAT_DESCP = 75000
+        max_features = 100000
         test_size = 0.2
         classifier = select_classifier(args.algorithm)
 
     # Load data
-
         # Training set
-        training_data = pd.read_csv('dataset_mid_transformed.csv', delimiter=',')
+        training_data = pd.read_csv(args.csv, delimiter=',')
 
         # Safety check: does data have NA values? If so, warn, remove, and continue
-        if(training_data['text_object'].isnull().values.any()):
+        text_feature = feature_datatypes['object'][0]
+        if(training_data[text_feature].isnull().values.any()):
             print("[WARNING] dataset contains missing values!")
-            print("[WARNING] Dropped",training_data['text_object'].isnull().sum(), "NA rows")
-            training_data = training_data[training_data['text_object'].notna()]
+            print("[WARNING] Dropped",training_data[text_feature].isnull().sum(), "NA rows")
+            training_data = training_data[training_data[text_feature].notna()]
 
         # Prediction set
         if(args.predict):
@@ -100,7 +99,7 @@ if __name__ == "__main__":
         # Currently only the first text feature will be used
         preprocess = ColumnTransformer(
             [
-            ('text_tfidf', TfidfVectorizer(max_features = MAX_FEAT_DESCP, stop_words = 'english', ngram_range=(1,ngram_max)), feature_datatypes['object'][0]),
+            ('text_tfidf', TfidfVectorizer(max_features = max_features, stop_words = 'english', ngram_range=(1,ngram_max)), feature_datatypes['object'][0]),
             ('onehot_category', OneHotEncoder(dtype='int', handle_unknown='ignore'), feature_datatypes['category'])
             ],
             remainder='drop')
@@ -117,7 +116,6 @@ if __name__ == "__main__":
             print("\n\nExample of 'an apple a day keeps the doctor away' text using this ngram range:\n\n",TfidfVectorizer(max_features = MAX_FEAT_DESCP, stop_words = 'english', ngram_range=(1,ngram_max)).fit(["an apple a day keeps the doctor away"]).vocabulary_)
         
     # Evaluation
-
         # Baseline
         dummy_clf = DummyClassifier(strategy="uniform")
         dummy_clf.fit(X_train, y_train)
@@ -136,7 +134,7 @@ if __name__ == "__main__":
         
         # Confusion matrix
         if(args.confusionmatrix):
-            matrix = plot_confusion_matrix(model, X_test, y_test,
+            matrix = metrics.plot_confusion_matrix(model, X_test, y_test,
                                     cmap=plt.cm.Blues,
                                     normalize='all')
             plt.title('Confusion matrix for ' + args.algorithm + ' classifier')
@@ -144,7 +142,7 @@ if __name__ == "__main__":
                 
         # Predictions
         if(args.predict):
-            print(model.predict(pred_features))
+            print("Predictions:", model.predict(pred_features))
 
 
 
