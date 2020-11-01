@@ -1,4 +1,4 @@
-Simple scikit-learn sentiment classification pipeline for fundamentals of machine learning course
+Simple scikit-learn sentiment classification pipeline for my fundamentals of machine learning course
 
 # Usage
 
