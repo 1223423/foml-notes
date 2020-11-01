@@ -20,21 +20,22 @@ By default the text data is converted to tf-idf representation, categorical feat
 # Data & wrangling utility
 
 We're using the the Sentiment140 corpus, which can be found
-Here: http://help.sentiment140.com/for-students
-And here: https://www.kaggle.com/kazanova/sentiment140
+* Here: http://help.sentiment140.com/for-students
+* And here: https://www.kaggle.com/kazanova/sentiment140
 
 The data contains 1.6 million tweets labelled with positive or negative sentiment.
 
-The utility cleans the data (removes mentions, urls, html tags, symbols etc.) and creates features specifically for our purpose. It also creates a randomly selected subset that is equally balanced across days of the week and labels for each day. We only use 10k per label per weekday, resulting in only 140k observations used. A few short tweets get destroyed during the wrangling and are removed from the set. See more in the rmd file.
+The utility cleans the data (removes mentions, urls, html tags, symbols etc.) and creates features specifically for our purpose. It also creates a randomly sampled subset that is equally balanced across days of the week and labels for each day. We only use 10k per label per weekday, resulting in only 140k observations used. A few short tweets get destroyed during the wrangling and are removed from the set. See more in the rmd file.
 
 ## Todo
 - Implement char ngrams
 - Try / catch everything and general non-hardcoded safety checks
 - Add other algorithms & more dynamic pipeline
 - Pickle trained models for reuse
-- Framework for generating automatic report: training, evaluating & predicting across all ngram, feature, chosen split, algorithm combinations
+- Framework for generating automatic reports: training, evaluating & predicting across all ngram, feature, chosen split, algorithm combinations
 - Document wrangling util more clearly
+  - Solve that weird bug instead of having a million mutate pipes
 - Reduce assumptions / parameters e.g. max features or test / train split
-- Reduce dependencies
-- Support multiple text features (now only uses the first)
+- Reduce dependencies where possible
+- Support multiple text / object dtype features (now only uses the first available)
 - More educational prints of encoding, train & evaluation
