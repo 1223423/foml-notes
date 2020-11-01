@@ -8,13 +8,20 @@ python train.py --csv dataset_subset_transformed.csv --predict predictors.csv --
 ## Flags
 
  ```--csv``` [filename.csv] _training dataset_
+ 
  ```--features ``` [feature1 feature2] _list of features to use in training. Notice that feature name is followed by an underscore and pandas datatype in both training set and prediction set. This is necessary for succesful encoding._
+ 
  ```-- algorithm ``` [svm / nb] _training algorithm_
+ 
  ```-- ngrams ``` [n] _Ngram range from 1 to n (not n-grams alone!), currently only words_
+ 
 ### Optional flags
  ```-- predict``` [filename.csv] _unlabeled data; must contain same feature names as in train set_
+ 
  ```-- crossvalidate / cv``` _cross-validation of entire training set (10 splits)_
+ 
  ```-- confusionmatrix / cm``` _draws basic confusion matrix (requires matplotlib)_
+ 
  ```-- showngrams ``` _Shows the sentence 'an apple a day keeps the doctor away' converted to the range of ngrams_
 
 By default the text data is converted to tf-idf representation, categorical features are one hot encoded, and numerical features left as is.
