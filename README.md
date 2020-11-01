@@ -5,8 +5,8 @@ python train.py --csv dataset_subset_transformed.csv --predict predictors.csv --
 ```
 ## Flags
 
-  --csv [filename.csv] _training dataset_
-  --features [feature1 feature2] _list of features to use in training. Notice that feature name is followed by an underscore and pandas datatype. This is necessary for succesful encoding._
+ * --csv [filename.csv] _training dataset_
+ * --features [feature1 feature2] _list of features to use in training. Notice that feature name is followed by an underscore and pandas datatype. This is necessary for succesful encoding._
   -- algorithm [svm / nb] _training algorithm_
   -- ngrams [n] _Ngram range from 1 to n (not n-grams alone!)_
 ### Optional flags
