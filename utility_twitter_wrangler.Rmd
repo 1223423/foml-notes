@@ -131,6 +131,103 @@ csv_transform <- function(input, output){
   write.csv(transformed_data, output, row.names = FALSE)
 }
 
+csv_transform_scraped <- function(input, output){
+  
+  data <- read.csv(input)
+  transformed_data <- data  %>%
+    
+    # weekday-category
+    mutate(weekday = case_when(
+      (substr(created, 1, 3) == "MON") ~ 1,
+      (substr(created, 1, 3) == "TUE") ~ 2,
+      (substr(created, 1, 3) == "WED") ~ 3,
+      (substr(created, 1, 3) == "THU") ~ 4,
+      (substr(created, 1, 3) == "FRI") ~ 5,
+      (substr(created, 1, 3) == "SAT") ~ 6,
+      (substr(created, 1, 3) == "SUN") ~ 7
+    )) %>%
+    
+    # containsMention-category
+    mutate(containsMention = case_when(
+      TRUE ~ as.numeric(grepl("@", text, fixed = TRUE))
+    )) %>%
+    
+    
+    # Remove mentions                  
+    mutate(text = case_when(
+      TRUE ~ gsub("@[A-Za-z0-9]+", "", text)
+    )) %>%
+      
+    # Remove normal urls
+    mutate(text = case_when(
+      TRUE ~ rm_url(text, trim = TRUE, clean = TRUE,
+                                    pattern = "@rm_url", replacement = "", extract = FALSE,
+                                    dictionary = getOption("regex.library"))
+    )) %>%
+      
+    # Remove shortened twitter urls
+    mutate(text = case_when(
+      TRUE ~ rm_twitter_url(text, trim = TRUE, clean = TRUE,
+                                    pattern = "@rm_twitter_url", replacement = "", extract = FALSE,
+                                    dictionary = getOption("regex.library"))
+    )) %>%
+      
+    # Remove various remaining symbols (text-emojis are sacrificed here)
+    # Lowercase and remove symbols
+    mutate(text = case_when(
+      TRUE ~ gsub("[,.!_*#:;)(']","",str_to_lower(text, locale = "en"))
+    )) %>%
+      
+    # Replace dashes with space
+    mutate(text = case_when(
+      TRUE ~ gsub("-"," ",text)
+    )) %>%
+      
+    # Replace ampersands with and (though this will be removed by stopwords)
+    mutate(text = case_when(
+      TRUE ~ gsub("&amp"," and ", text)
+    )) %>%
+      
+    # Remove numerics
+    mutate(text = case_when(
+      TRUE ~ gsub("[0-9]","", text)
+    )) %>%
+      
+    # Remove numerics
+    mutate(text = case_when(
+      TRUE ~ gsub("[0-9]","", text)
+    )) %>%
+    
+    # replace slashes with space to separate sentences
+    mutate(text = case_when(
+      TRUE ~ gsub("/"," ", text)
+    )) %>%
+      
+    mutate(text = case_when(
+      TRUE ~ gsub("\\\\"," ",text)
+    )) %>%
+    
+    #remove html quotes
+    mutate(text = case_when(
+      TRUE ~ gsub("&quot"," ",text)
+    )) %>%
+    
+    #remove extraneous whitespace
+    mutate(text = case_when(
+      TRUE ~ gsub("\\s+"," ",text)
+    )) %>%
+    
+    # Remove na
+    filter(!is.na(text)) %>%
+    filter(text != "") %>%
+      
+    select(text, containsMention, weekday) %>%
+    rename("text_object" = "text", "containsMention_category" = "containsMention", "weekday_category" = "weekday")
+
+
+  write.csv(transformed_data, output, row.names = FALSE)
+}
+
 #csv_balanced_subset: Sentiment140 is too large for the toaster we're using. This function creates a balanced randomly selected subset.
 # Input: csv, Output: csv
 #     - Initially the whole dataset is split into positive and negative labels
@@ -190,8 +287,10 @@ csv_balanced_subset <- function(input, output, n){
 # Methodology:
 #     1. Wrangle original dataset into a cleaned subset
 csv_transform("original_full.csv", "dataset_full_transformed.csv")
-#     2. Create a randomly selected, balanced subset that we will work on
+#     2. Create a randomly selected, balanced subset that we will train on
 csv_balanced_subset("dataset_full_transformed.csv", "dataset_subset_transformed.csv", 10000)
+#     3. Wrangle our scraped tweets the same way we did the original data
+csv_transform_scraped("scraped/MON.csv","scraped/MON_clean.csv")
 ```
 
 
