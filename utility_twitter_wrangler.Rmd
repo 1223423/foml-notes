@@ -291,6 +291,12 @@ csv_transform("original_full.csv", "dataset_full_transformed.csv")
 csv_balanced_subset("dataset_full_transformed.csv", "dataset_subset_transformed.csv", 10000)
 #     3. Wrangle our scraped tweets the same way we did the original data
 csv_transform_scraped("scraped/MON.csv","scraped/MON_clean.csv")
+csv_transform_scraped("scraped/TUE.csv","scraped/TUE_clean.csv")
+csv_transform_scraped("scraped/WED.csv","scraped/WED_clean.csv")
+csv_transform_scraped("scraped/THU.csv","scraped/THU_clean.csv")
+csv_transform_scraped("scraped/FRI.csv","scraped/FRI_clean.csv")
+csv_transform_scraped("scraped/SAT.csv","scraped/SAT_clean.csv")
+csv_transform_scraped("scraped/SUN.csv","scraped/SUN_clean.csv")
 ```
 
 
