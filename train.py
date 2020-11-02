@@ -63,6 +63,7 @@ if __name__ == "__main__":
         parser.add_argument('--ngrams', help = "use ngrams up to x", default = 1, type = int, required = True)
         parser.add_argument('--showngrams', help = "show example of ngram encoding", action="store_true", required = False)
         parser.add_argument('--confusionmatrix','--cm', help = "plot confusion matrix", action="store_true", required = False)
+        parser.add_argument('--predcsv', help = "output predictions to csv", action="store_true", required = False)
         args = parser.parse_args()
 
     # Parameters
@@ -144,7 +145,13 @@ if __name__ == "__main__":
                 
         # Predictions
         if(args.predict):
-            print("Predictions:", model.predict(pred_features))
+            predictions = model.predict(pred_features)
+            print("Predictions:", predictions)
+            if(args.predcsv):
+                print("Generating prediction csv...")
+                pred_data['prediction'] = predictions
+                path = str('prediction_' + args.predict)
+                pred_data.to_csv(path)
 
 
 
